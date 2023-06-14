@@ -1,8 +1,9 @@
 import json
 from fastapi import APIRouter, UploadFile
-from rules import rules
+from rules import Rules
 
 router = APIRouter()
+rules = Rules()
 
 @router.get("/admin/rules")
 def get_rules() -> dict:
