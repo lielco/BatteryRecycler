@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Annotated
 from uuid import uuid4
-from fastapi import APIRouter, Form
+from fastapi import APIRouter, Form, HTTPException, status as status_
 from pydantic import BaseModel
 from rules import Rules
 
@@ -26,6 +26,11 @@ class Pickup(BaseModel):
 
 @router.get("/api/customer/{customer_id}/pickup/{pickup_id}")
 def get_pickup_details(customer_id: str, pickup_id: str):
+    pickup = pickups.get(pickup_id)
+    if not pickup:
+        print(f"Entity {pickup_id} not found")
+        raise HTTPException(status_code=status_.HTTP_404_NOT_FOUND, 
+                            detail=f"Entity {pickup_id} not found")
     return pickups.get(pickup_id)
 
 @router.post("/api/customer/{customer_id}/pickup")
@@ -51,7 +56,12 @@ def generate_pickup_quote(customer_id,
 
 @router.patch("/api/customer/{customer_id}/pickup/{pickup_id}/approval", response_model=Pickup)
 def approve_pickup(customer_id, pickup_id, pickup_approval: Pickup):
-    pickup = pickups[pickup_id]
+    pickup = pickups.get(pickup_id)
+    if not pickup:
+        print(f"Entity {pickup_id} not found")
+        raise HTTPException(status_code=status_.HTTP_404_NOT_FOUND, 
+                            detail=f"Entity {pickup_id} not found")
+
     update_data = pickup_approval.dict(exclude_unset=True)
     updated_item = pickup.copy(update=update_data)
     pickups[pickup_id] = updated_item
@@ -60,7 +70,7 @@ def approve_pickup(customer_id, pickup_id, pickup_approval: Pickup):
 def calculate_quote(battery_capacity: int, battery_age: int, battery_type: str, amount: int,  us_state: str):
     quote = 0
     rule_list = rules.get_rules()
-    prices_by_type = rule_list.get("base_price").get(battery_type, [])
+    prices_by_type = rule_list.get("base_price", {}).get(battery_type, [])
     price_for_capacity = next((price for price in prices_by_type if price["capacity"] == battery_capacity), None)
     if price_for_capacity:
         base_price = price_for_capacity["price"]
