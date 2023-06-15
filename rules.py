@@ -1,4 +1,5 @@
 class Rules(object):
+    """ A singleton class to manage the active rules list. """
     def __new__(cls):
         inst = super(Rules, cls).__new__(cls)
         if not hasattr(cls, 'instance'):
@@ -6,12 +7,15 @@ class Rules(object):
             inst.rules = {}
         return cls.instance
 
-    # def __init__(self) -> None:
-    #     self.rules = {}
-
     def update_rules(self, rules: dict) -> None:
+        """ Updates the active rule list
+                
+        :param rules: A list of rules for quota calculation
+        :type rules: dict
+        """
         self.rules = rules
 
     def get_rules(self) -> dict:
+        """ Retrives the active rule list """
         return self.rules
     

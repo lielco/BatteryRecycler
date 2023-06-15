@@ -1,8 +1,16 @@
+from math import floor
 from rules import Rules
 from schemas.schemas import Pickup
 
 class QuoteManager:
+    """ A class to manage quote calculation """
     def calculate_quote(self, pickup: Pickup):
+        """ Calculates price quote for the given pickup based on the
+        active rule list.
+                
+        :param pickup: The pickup response
+        :type pickup: Pickup
+        """
         rules = Rules()
         quote = 0
         rule_list = rules.get_rules()
@@ -31,4 +39,4 @@ class QuoteManager:
         else:
             print(f"Could not calculate quote for battery type {pickup.battery_type} with capacity of {pickup.battery_capacity}")
 
-        return quote
+        return floor(quote)
