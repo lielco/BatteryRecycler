@@ -1,0 +1,28 @@
+{
+	"base_price": {
+		"batteryA": [{
+			"capacity": 10000,
+			"price": 10
+		}, {
+			"capacity": 15000,
+			"price": 15
+		}],
+		"batteryB": [{
+			"capacity": 15000,
+			"price": 20
+		}, {
+			"capacity": 40000,
+			"price": 50
+		}]
+	},
+	"distances": {
+		"NV": 1,
+		"UT": 0.9,
+		"NY": 0.2
+	},
+	"bulk": {
+		"minimum_amount": 10,
+		"price_factor": 1.1
+	},
+	"age_yearly_reduction": 1
+}
