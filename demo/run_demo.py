@@ -8,9 +8,10 @@ pickup_path = f'http://127.0.0.1:8000/api/customer/{customer_id}/pickup'
 print('### HAPPY FLOW ###')
 print('### Put new rule file ###')
 print(f'PUT {admin_path}')
-files = {'rules_file': open('demo/rules.json', 'rb')}
-put_rules_response = requests.put(admin_path, files=files)
-print(f'{put_rules_response.status_code}: {put_rules_response.content}')
+with open('demo/rules.json', 'rb') as file:
+    files = {'rules_file': file}
+    put_rules_response = requests.put(admin_path, files=files)
+    print(f'{put_rules_response.status_code}: {put_rules_response.content}')
 
 print()
 print('### Post pickup request ###')
