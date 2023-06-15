@@ -19,3 +19,6 @@ class Pickup(BaseModel):
 class PickupApproval(BaseModel):
     status: PickupStatus | None = None
 
+class QuoteResponse(BaseModel):
+    pickup_id: str 
+    quote: int

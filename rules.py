@@ -1,10 +1,9 @@
 class Rules(object):
     """ A singleton class to manage the active rules list. """
     def __new__(cls):
-        inst = super(Rules, cls).__new__(cls)
         if not hasattr(cls, 'instance'):
             cls.instance = super(Rules, cls).__new__(cls)
-            inst.rules = {}
+            cls.instance.rules = {}
         return cls.instance
 
     def update_rules(self, rules: dict) -> None:

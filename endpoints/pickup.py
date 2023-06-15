@@ -3,7 +3,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Form, HTTPException, status as status_
 from quote_manager import QuoteManager
 from rules import Rules
-from schemas.schemas import Pickup, PickupApproval, PickupStatus
+from schemas.schemas import Pickup, PickupApproval, PickupStatus, QuoteResponse
 
 pickups = {}
 router = APIRouter()
@@ -11,6 +11,10 @@ rules = Rules()
 
 @router.get("/api/customer/{customer_id}/pickup/{pickup_id}", response_model=Pickup)
 def get_pickup_details(customer_id: str, pickup_id: str):
+    """
+    This endpoint gets pickup_id and return the relevant pickup details
+    """
+    
     pickup = pickups.get(pickup_id)
     if not pickup:
         print(f"Entity {pickup_id} not found")
@@ -18,13 +22,15 @@ def get_pickup_details(customer_id: str, pickup_id: str):
                             detail=f"Entity {pickup_id} not found")
     return pickups.get(pickup_id)
 
-@router.post("/api/customer/{customer_id}/pickup")
+@router.post("/api/customer/{customer_id}/pickup", response_model=QuoteResponse)
 def generate_pickup_quote(customer_id, 
-                          battery_capacity: Annotated[int, Form()], 
-                          battery_age: Annotated[int, Form()],
-                          battery_type: Annotated[str, Form()],
-                          amount: Annotated[int, Form()],
-                          us_state: Annotated[str, Form()]):
+                          battery_capacity: Annotated[int, Form(ge=1, description="The battery's capacity in mAH")], 
+                          battery_age: Annotated[int, Form(ge=1, description="The battery's age in years")],
+                          battery_type: Annotated[str, Form(description="Type of the battery")],
+                          amount: Annotated[int, Form(ge=1, description="The amount of batteries that you have")],
+                          us_state: Annotated[str, Form(max_length=2, min_length=2, 
+                                                        description="The state you are located in in two letter abbreviation",
+                                                        example="NY")]):
     id = uuid4().hex
     quote_manager = QuoteManager()
     pickup = Pickup(id=id, 
@@ -35,14 +41,14 @@ def generate_pickup_quote(customer_id,
                     amount=amount,
                     us_state=us_state,
                     status=PickupStatus.PENDING)
-    qoute = quote_manager.calculate_quote(pickup)
-    pickup.quote = qoute
+    quote = quote_manager.calculate_quote(pickup)
+    pickup.quote = quote
     pickups[id] = pickup
      
-    return { "pickup_id": id, "quote": qoute }
+    return QuoteResponse(pickup_id=id, quote=quote)
 
 @router.patch("/api/customer/{customer_id}/pickup/{pickup_id}/approval", response_model=Pickup)
-def approve_pickup(customer_id, pickup_id, pickup_approval: PickupApproval):
+def approve_pickup(customer_id: str, pickup_id: str, pickup_approval: PickupApproval):
     pickup = pickups.get(pickup_id)
     if not pickup:
         print(f"Entity {pickup_id} not found")
