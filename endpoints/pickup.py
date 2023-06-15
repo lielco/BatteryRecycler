@@ -1,15 +1,32 @@
+from enum import Enum
 from typing import Annotated
 from uuid import uuid4
 from fastapi import APIRouter, Form
+from pydantic import BaseModel
 from rules import Rules
 
-pickup = {}
+pickups = {}
 router = APIRouter()
 rules = Rules()
 
+class PickupStatus(str, Enum):
+    PENDING = 'PENDING'
+    CONFIRMED = 'CONFIRMED'
+
+class Pickup(BaseModel):
+    id: str | None = None
+    customer_id: str | None = None
+    battery_type: str | None = None
+    battery_capacity: int | None = None
+    battery_age: int | None = None
+    amount: int | None = None
+    us_state: str | None = None
+    quote: int | None = None
+    status: PickupStatus | None = None
+
 @router.get("/api/customer/{customer_id}/pickup/{pickup_id}")
 def get_pickup_details(customer_id: str, pickup_id: str):
-    return pickup.get(pickup_id)
+    return pickups.get(pickup_id)
 
 @router.post("/api/customer/{customer_id}/pickup")
 def generate_pickup_quote(customer_id, 
@@ -20,18 +37,25 @@ def generate_pickup_quote(customer_id,
                           us_state: Annotated[str, Form()]):
     id = uuid4().hex
     qoute = calculate_quote(battery_capacity, battery_age, battery_type, amount, us_state)
-    pickup[id] = {
-        "pickup_id": id,
-        "customer_id": customer_id,
-        "battery_capacity": battery_capacity,
-        "battery_age": battery_age,
-        "battery_type": battery_type,
-        "amount" : amount,
-        "us_state": us_state,
-        "quote": qoute
-    }
-
+    pickups[id] = Pickup(id=id, 
+                         customer_id=customer_id, 
+                         battery_type=battery_type, 
+                         battery_capacity=battery_capacity, 
+                         battery_age=battery_age,
+                         amount=amount,
+                         us_state=us_state,
+                         quote=qoute,
+                         status=PickupStatus.PENDING)
+     
     return { "pickup_id": id, "quote": qoute }
+
+@router.patch("/api/customer/{customer_id}/pickup/{pickup_id}/approval", response_model=Pickup)
+def approve_pickup(customer_id, pickup_id, pickup_approval: Pickup):
+    pickup = pickups[pickup_id]
+    update_data = pickup_approval.dict(exclude_unset=True)
+    updated_item = pickup.copy(update=update_data)
+    pickups[pickup_id] = updated_item
+    return updated_item
 
 def calculate_quote(battery_capacity: int, battery_age: int, battery_type: str, amount: int,  us_state: str):
     quote = 0
