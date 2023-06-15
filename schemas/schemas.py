@@ -15,3 +15,7 @@ class Pickup(BaseModel):
     us_state: str | None = None
     quote: int | None = None
     status: PickupStatus | None = None
+
+class PickupApproval(BaseModel):
+    status: PickupStatus | None = None
+

@@ -1,16 +1,15 @@
-from enum import Enum
 from typing import Annotated
 from uuid import uuid4
 from fastapi import APIRouter, Form, HTTPException, status as status_
 from quote_manager import QuoteManager
 from rules import Rules
-from schemas.schemas import Pickup, PickupStatus
+from schemas.schemas import Pickup, PickupApproval, PickupStatus
 
 pickups = {}
 router = APIRouter()
 rules = Rules()
 
-@router.get("/api/customer/{customer_id}/pickup/{pickup_id}")
+@router.get("/api/customer/{customer_id}/pickup/{pickup_id}", response_model=Pickup)
 def get_pickup_details(customer_id: str, pickup_id: str):
     pickup = pickups.get(pickup_id)
     if not pickup:
@@ -43,7 +42,7 @@ def generate_pickup_quote(customer_id,
     return { "pickup_id": id, "quote": qoute }
 
 @router.patch("/api/customer/{customer_id}/pickup/{pickup_id}/approval", response_model=Pickup)
-def approve_pickup(customer_id, pickup_id, pickup_approval: Pickup):
+def approve_pickup(customer_id, pickup_id, pickup_approval: PickupApproval):
     pickup = pickups.get(pickup_id)
     if not pickup:
         print(f"Entity {pickup_id} not found")
